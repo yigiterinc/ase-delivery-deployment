@@ -2,7 +2,7 @@ image: maven:3.6.3-jdk-11
 
 cache:
   paths:
-    - .m2/repostiory
+    - .m2/repository
 
 before_script:
   - cd $CI_PROJECT_DIR
@@ -111,9 +111,8 @@ service-registry:publish:
   image: docker:stable
 
   script:
-    - cd service-registry
     - docker login -u $CI_REGISTRY_USER -p $CI_PASSWORD $CI_REGISTRY
-    - docker build -t $IMAGE_NAME:latest .
+    - docker build -t $IMAGE_NAME:latest -f $IMAGE_NAME/Dockerfile .
     - docker image tag $IMAGE_NAME $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
     - docker push $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
   variables:
@@ -127,9 +126,8 @@ api-gateway:publish:
   image: docker:stable
 
   script:
-    - cd api-gateway
     - docker login -u $CI_REGISTRY_USER -p $CI_PASSWORD $CI_REGISTRY
-    - docker build -t $IMAGE_NAME:latest .
+    - docker build -t $IMAGE_NAME:latest -f $IMAGE_NAME/Dockerfile .
     - docker image tag $IMAGE_NAME $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
     - docker push $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
   variables:
@@ -143,9 +141,8 @@ customer-authentication-service:publish:
   image: docker:stable
 
   script:
-    - cd customer-authentication-service
     - docker login -u $CI_REGISTRY_USER -p $CI_PASSWORD $CI_REGISTRY
-    - docker build -t $IMAGE_NAME:latest .
+    - docker build -t $IMAGE_NAME:latest -f $IMAGE_NAME/Dockerfile .
     - docker image tag $IMAGE_NAME $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
     - docker push $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
   variables:
