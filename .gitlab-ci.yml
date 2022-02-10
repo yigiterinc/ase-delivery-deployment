@@ -167,12 +167,13 @@ deploy:aws:
   image: ubuntu:20.04
   script:
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
-    - mkdir -p ~/.ssh && touch ~/.ssh/config
+    - mkdir ~/.ssh && touch ~/.ssh/config
     - eval $(ssh-agent -s)
+    - mkdir ~/.ssh
     - chmod 700 ~/.ssh
     - cat $AWS_PEM_KEY | tr -d '\r' | ssh-add -
     - scp -r $DOCKER_COMPOSE_FILE $AWS_USER_HOST:~/
     - ssh $AWS_USER_HOST "docker login -u $CI_USERNAME -p $CI_PASSWORD $CI_REGISTRY"
     - ssh $AWS_USER_HOST "docker-compose -f $DOCKER_COMPOSE_FILE pull && docker-compose -f $DOCKER_COMPOSE_FILE up --force-recreate -d"
   variables:
-    DOCKER_COMPOSE_FILE: docker-compose-yml
+    DOCKER_COMPOSE_FILE: docker-compose.yml
