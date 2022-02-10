@@ -3,26 +3,20 @@ version: '3.8'
 services:
 
   service-registry:
-    build:
-      context: .
-      dockerfile: service-registry/Dockerfile
     container_name: service-registry
     hostname: service-registry
-    image: service-registry/service_registry
+    image: gitlab.lrz.de:5005/ase-21-22/team-5/ase-delivery:service-registry
     restart: on-failure
     environment:
       - SERVER_PORT=8761
     ports:
       - "8761:8761"
-      
-      
+
+
   api-gateway:
-    build:
-      context: .
-      dockerfile: api-gateway/Dockerfile
     container_name: api-gateway
     hostname: api-gateway
-    image: api-gateway/api_gateway
+    image: gitlab.lrz.de:5005/ase-21-22/team-5/ase-delivery:api-gateway
     restart: on-failure
     links:
       - service-registry
@@ -33,8 +27,8 @@ services:
       - "8082:8082"
     depends_on:
       - service-registry
-      
-   
+
+
   cas_mongodb:
     image: mongo:latest
     container_name: cas_mongodb
@@ -48,15 +42,12 @@ services:
       - 27017:27017
     volumes:
       - "./data/db:/data/db_cas"
-      
+
 
   customer-auth-service:
-    build:
-      context: .
-      dockerfile: customer-authentication-service/Dockerfile
     container_name: customer-auth-service
     hostname: customer-auth-service
-    image: customer-auth-service/customer_auth_service
+    image: gitlab.lrz.de:5005/ase-21-22/team-5/ase-delivery:customer-authentication-service
     restart: on-failure
     links:
       - cas_mongodb
@@ -72,8 +63,8 @@ services:
     depends_on:
       - cas_mongodb
       - service-registry
-      
-      
+
+
   ds_mongodb:
     image: mongo:latest
     command: mongod --port 27018
@@ -88,15 +79,12 @@ services:
       - 27018:27018
     volumes:
       - "./data/db:/data/db_ds"
-      
-      
+
+
   delivery-service:
-    build:
-      context: .
-      dockerfile: delivery-service/Dockerfile
     container_name: delivery-service
     hostname: delivery-service
-    image: delivery-service/delivery_service
+    image: gitlab.lrz.de:5005/ase-21-22/team-5/ase-delivery:delivery-service
     restart: on-failure
     links:
       - ds_mongodb
