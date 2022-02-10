@@ -166,14 +166,19 @@ deploy:aws:
   stage: deploy
   image: ubuntu:20.04
   script:
-    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
-    - mkdir ~/.ssh && touch ~/.ssh/config
     - eval $(ssh-agent -s)
+    - echo "$AWS_PEM_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-    - cat $AWS_PEM_KEY | tr -d '\r' | ssh-add -
-    - scp -r $DOCKER_COMPOSE_FILE $AWS_USER_HOST:~/
-    - ssh $AWS_USER_HOST "docker login -u $CI_USERNAME -p $CI_PASSWORD $CI_REGISTRY"
-    - ssh $AWS_USER_HOST "docker-compose -f $DOCKER_COMPOSE_FILE pull && docker-compose -f $DOCKER_COMPOSE_FILE up --force-recreate -d"
+    - scp -o StrictHostKeyChecking=no $DOCKER_COMPOSE_FILE $AWS_USER_HOST:~/
+    #- 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    #- mkdir ~/.ssh && touch ~/.ssh/config
+    #- eval $(ssh-agent -s)
+    #- mkdir -p ~/.ssh
+    #- chmod 700 ~/.ssh
+    #- cat $AWS_PEM_KEY | tr -d '\r' | ssh-add -
+    #- scp -r $DOCKER_COMPOSE_FILE $AWS_USER_HOST:~/
+    #- ssh $AWS_USER_HOST "docker login -u $CI_USERNAME -p $CI_PASSWORD $CI_REGISTRY"
+    #- ssh $AWS_USER_HOST "docker-compose -f $DOCKER_COMPOSE_FILE pull && docker-compose -f $DOCKER_COMPOSE_FILE up --force-recreate -d"
   variables:
     DOCKER_COMPOSE_FILE: docker-compose.yml
