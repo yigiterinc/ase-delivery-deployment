@@ -169,7 +169,7 @@ deploy:aws:
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
     - mkdir ~/.ssh && touch ~/.ssh/config
     - eval $(ssh-agent -s)
-    - mkdir ~/.ssh
+    - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
     - cat $AWS_PEM_KEY | tr -d '\r' | ssh-add -
     - scp -r $DOCKER_COMPOSE_FILE $AWS_USER_HOST:~/
