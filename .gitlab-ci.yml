@@ -1,10 +1,12 @@
 image: maven:3.6.3-jdk-11
 
 cache:
+  key: "$CI_COMMIT_REF_SLUG"
   paths:
-    - .m2/repository
+    - installed_deps/
 
 before_script:
+  - mkdir -p installed_deps
   - cd $CI_PROJECT_DIR
 
 after_script:
