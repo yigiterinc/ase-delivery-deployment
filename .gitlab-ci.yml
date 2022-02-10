@@ -172,7 +172,7 @@ deploy:aws:
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
     - groupadd docker
-    - usermod -aG docker gitlab-runner
+    - usermod -aG docker $CI_USERNAME
     - service docker restart
     - chmod 666 /var/run/docker.sock
     - scp -o StrictHostKeyChecking=no $DOCKER_COMPOSE_FILE $AWS_USER_HOST:~/
