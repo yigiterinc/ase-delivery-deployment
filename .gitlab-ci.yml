@@ -1,0 +1,157 @@
+image: maven:3.6.3-jdk-11
+
+cache:
+  paths:
+    - .m2/repostiory
+
+before_script:
+  - cd $CI_PROJECT_DIR && cd ..
+
+after_script:
+  - cd $CI_PROJECT_DIR && cd ..
+
+stages:
+  - build
+  - test # no tests implemented
+  - package
+  - publish
+  - deploy
+
+
+### build ###
+service-registry:build:
+  stage: build
+  script:
+    - cd service-registry/ && mvn clean compile
+  only:
+    changes:
+      - service-registry/**/*
+      
+api-gateway:build:
+  stage: build
+  script:
+    - cd api-gateway/ && mvn clean compile
+  only:
+    changes:
+      - api-gateway/**/*
+      
+customer-authentication-service-:build:
+  stage: build
+  script:
+    - cd customer-authentication-service/ && mvn clean compile
+  only:
+    changes:
+      - customer-authentication-service/**/*
+
+
+### test ###
+service-registry:test:
+  stage: test
+  script:
+    - cd service-registry/ && mvn test
+  only:
+    changes:
+      - service-registry/**/*
+      
+api-gateway:test:
+  stage: test
+  script:
+    - cd api-gateway/ && mvn test
+  only:
+    changes:
+      - api-gateway/**/*
+      
+customer-authentication-service:test:
+  stage: test
+  script:
+    - cd customer-authentication-service/ && mvn test
+  only:
+    changes:
+      - customer-authentication-service/**/*
+
+
+### package ###
+service-registry:package:
+  stage: package
+  script:
+    - cd service-registry/ && mvn package -DskipTests=true
+  artifacts:
+    paths:
+      - service-registry/target/*.jar
+  only:
+    changes:
+      - service-registry/**/*
+      
+api-gateway:package:
+  stage: package
+  script:
+    - cd api-gateway/ && mvn package -DskipTests=true
+  artifacts:
+    paths:
+      - api-gateway/target/*.jar
+  only:
+    changes:
+      - api-gateway/**/*
+      
+customer-authentication-service:package:
+  stage: package
+  script:
+    - cd customer-authentication-service/ && mvn package -DskipTests=true
+  artifacts:
+    paths:
+      - customer-authentication-service/target/*.jar
+  only:
+    changes:
+      - customer-authentication-service/**/*
+
+
+### publish ###
+service-registry:publish:
+  stage: publish
+  image: docker:stable
+
+  script:
+    - cd service-registry
+    - docker login -u $CI_REGISTRY_USER -p $CI_PASSWORD $CI_REGISTRY
+    - docker build -t $IMAGE_NAME:latest .
+    - docker image tag $IMAGE_NAME $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
+    - docker push $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
+  variables:
+    IMAGE_NAME: service-registry
+  only:
+    changes:
+      - service-registry/*/**
+      
+api-gateway:publish:
+  stage: publish
+  image: docker:stable
+
+  script:
+    - cd api-gateway
+    - docker login -u $CI_REGISTRY_USER -p $CI_PASSWORD $CI_REGISTRY
+    - docker build -t $IMAGE_NAME:latest .
+    - docker image tag $IMAGE_NAME $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
+    - docker push $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
+  variables:
+    IMAGE_NAME: api-gateway
+  only:
+    changes:
+      - api-gateway/*/**
+      
+customer-authentication-service:publish:
+  stage: publish
+  image: docker:stable
+
+  script:
+    - cd customer-authentication-service
+    - docker login -u $CI_REGISTRY_USER -p $CI_PASSWORD $CI_REGISTRY
+    - docker build -t $IMAGE_NAME:latest .
+    - docker image tag $IMAGE_NAME $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
+    - docker push $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
+  variables:
+    IMAGE_NAME: customer-authentication-service
+  only:
+    changes:
+      - customer-authentication-service/*/**
+
+

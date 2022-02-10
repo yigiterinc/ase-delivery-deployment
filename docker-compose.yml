@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+
+  service-registry:
+    build:
+      context: .
+      dockerfile: service-registry/Dockerfile
+    container_name: service-registry
+    hostname: service-registry
+    image: service-registry/service_registry
+    restart: on-failure
+    environment:
+      - SERVER_PORT=8761
+    ports:
+      - "8761:8761"
+      
+      
+  api-gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    container_name: api-gateway
+    hostname: api-gateway
+    image: api-gateway/api_gateway
+    restart: on-failure
+    links:
+      - service-registry
+    environment:
+      - SERVER_PORT=8082
+      - eureka.client.serviceUrl.defaultZone=http://service-registry:8761/eureka
+    ports:
+      - "8082:8082"
+    depends_on:
+      - service-registry
+      
+   
+  cas_mongodb:
+    image: mongo:latest
+    container_name: cas_mongodb
+    hostname: cas_mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: cas_mongodb
+      MONGO_INITDB_ROOT_USERNAME: cas_user
+      MONGO_INITDB_ROOT_PASSWORD: secret
+    ports:
+      - 27017:27017
+    volumes:
+      - "./data/db:/data/db_cas"
+      
+
+  customer-auth-service:
+    build:
+      context: .
+      dockerfile: customer-authentication-service/Dockerfile
+    container_name: customer-auth-service
+    hostname: customer-auth-service
+    image: customer-auth-service/customer_auth_service
+    restart: on-failure
+    links:
+      - cas_mongodb
+      - service-registry
+    environment:
+      - SERVER_PORT=8081
+      - MONGODB_URI=mongodb://cas_user:secret@cas_mongodb:27017/cas_mongodb?authSource=admin
+      - MONGODB_STATUS_HOST=cas_mongodb
+      - MONGODB_STATUS_PORT=27017
+      - eureka.client.serviceUrl.defaultZone=http://service-registry:8761/eureka
+    ports:
+      - "8081:8081"
+    depends_on:
+      - cas_mongodb
+      - service-registry
+      
+      
+  ds_mongodb:
+    image: mongo:latest
+    command: mongod --port 27018
+    container_name: ds_mongodb
+    hostname: ds_mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: ds_mongodb
+      MONGO_INITDB_ROOT_USERNAME: ds_delivery
+      MONGO_INITDB_ROOT_PASSWORD: secret
+    ports:
+      - 27018:27018
+    volumes:
+      - "./data/db:/data/db_ds"
+      
+      
+  delivery-service:
+    build:
+      context: .
+      dockerfile: delivery-service/Dockerfile
+    container_name: delivery-service
+    hostname: delivery-service
+    image: delivery-service/delivery_service
+    restart: on-failure
+    links:
+      - ds_mongodb
+      - service-registry
+    environment:
+      - SERVER_PORT=8080
+      - MONGODB_URI=mongodb://ds_delivery:secret@ds_mongodb:27018/ds_mongodb?authSource=admin
+      - MONGODB_STATUS_HOST=ds_mongodb
+      - MONGODB_STATUS_PORT=27018
+      - eureka.client.serviceUrl.defaultZone=http://service-registry:8761/eureka
+    ports:
+      - "8080:8080"
+    depends_on:
+      - ds_mongodb
+      - service-registry
+
