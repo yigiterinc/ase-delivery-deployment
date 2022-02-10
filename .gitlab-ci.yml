@@ -31,18 +31,31 @@ api-gateway:build:
     changes:
       - api-gateway/**/*
       
-customer-authentication-service-:build:
+customer-authentication-service:build:
   stage: build
   script:
     - mkdir -p installed_deps_cas
     - cd customer-authentication-service/ && mvn clean compile
   cache:
-    key: "$CI_COMMIT_REF_SLUG"
+    key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
     paths:
       - installed_deps_cas/
   only:
     changes:
       - customer-authentication-service/**/*
+
+delivery-service:build:
+  stage: build
+  script:
+    - mkdir -p installed_deps_cas
+    - cd delivery-service/ && mvn clean compile
+  cache:
+    key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
+    paths:
+      - installed_deps_dr/
+  only:
+    changes:
+      - delivery-service/**/*
 
 
 ### test ###
@@ -67,12 +80,24 @@ customer-authentication-service:test:
   script:
     - cd customer-authentication-service/ && mvn test
   cache:
-    key: "$CI_COMMIT_REF_SLUG"
+    key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
     paths:
       - installed_deps_cas/
   only:
     changes:
       - customer-authentication-service/**/*
+
+delivery-service:test:
+  stage: test
+  script:
+    - cd delivery-service/ && mvn test
+  cache:
+    key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
+    paths:
+      - installed_deps_ds/
+  only:
+    changes:
+      - delivery-service/**/*
 
 
 ### package ###
@@ -103,7 +128,7 @@ customer-authentication-service:package:
   script:
     - cd customer-authentication-service/ && mvn package -DskipTests=true
   cache:
-    key: "$CI_COMMIT_REF_SLUG"
+    key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
     paths:
       - installed_deps_cas/
   artifacts:
@@ -112,6 +137,21 @@ customer-authentication-service:package:
   only:
     changes:
       - customer-authentication-service/**/*
+
+delivery-service:package:
+  stage: package
+  script:
+    - cd delivery-service/ && mvn package -DskipTests=true
+  cache:
+    key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
+    paths:
+      - installed_deps_ds/
+  artifacts:
+    paths:
+      - delivery-service/target/*.jar
+  only:
+    changes:
+      - delivery-service/**/*
 
 
 ### publish ###
@@ -152,7 +192,7 @@ customer-authentication-service:publish:
     - docker image tag $IMAGE_NAME $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
     - docker push $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
   cache:
-    key: "$CI_COMMIT_REF_SLUG"
+    key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
     paths:
       - installed_deps_cas/
   variables:
@@ -160,6 +200,24 @@ customer-authentication-service:publish:
   only:
     changes:
       - customer-authentication-service/*/**
+
+delivery-service:publish:
+  stage: publish
+  image: docker:stable
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_PASSWORD $CI_REGISTRY
+    - docker build -t $IMAGE_NAME:latest -f $IMAGE_NAME/Dockerfile .
+    - docker image tag $IMAGE_NAME $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
+    - docker push $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
+  cache:
+    key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
+    paths:
+      - installed_deps_ds/
+  variables:
+    IMAGE_NAME: delivery-service
+  only:
+    changes:
+      - delivery-service/*/**
 
 
 deploy:aws:
@@ -171,21 +229,9 @@ deploy:aws:
     - echo "$AWS_PEM_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-    #- groupadd docker
-    #- usermod -aG docker gitlab-runner
-    #- service docker restart
     - chmod 666 /var/run/docker.sock
     - scp -o StrictHostKeyChecking=no $DOCKER_COMPOSE_FILE $AWS_USER_HOST:~/
     - ssh $AWS_USER_HOST "sudo docker login -u $CI_USERNAME -p $CI_PASSWORD $CI_REGISTRY"
     - ssh $AWS_USER_HOST "sudo docker-compose -f $DOCKER_COMPOSE_FILE pull && sudo docker-compose -f $DOCKER_COMPOSE_FILE up --build"
-    #- 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
-    #- mkdir ~/.ssh && touch ~/.ssh/config
-    #- eval $(ssh-agent -s)
-    #- mkdir -p ~/.ssh
-    #- chmod 700 ~/.ssh
-    #- cat $AWS_PEM_KEY | tr -d '\r' | ssh-add -
-    #- scp -r $DOCKER_COMPOSE_FILE $AWS_USER_HOST:~/
-    #- ssh $AWS_USER_HOST "docker login -u $CI_USERNAME -p $CI_PASSWORD $CI_REGISTRY"
-    #- ssh $AWS_USER_HOST "docker-compose -f $DOCKER_COMPOSE_FILE pull && docker-compose -f $DOCKER_COMPOSE_FILE up --force-recreate -d"
   variables:
     DOCKER_COMPOSE_FILE: docker-compose.yml
