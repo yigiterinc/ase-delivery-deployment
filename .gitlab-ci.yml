@@ -47,12 +47,12 @@ customer-authentication-service:build:
 delivery-service:build:
   stage: build
   script:
-    - mkdir -p installed_deps_cas
+    - mkdir -p installed_deps_ds
     - cd delivery-service/ && mvn clean compile
   cache:
     key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
     paths:
-      - installed_deps_dr/
+      - installed_deps_ds/
   only:
     changes:
       - delivery-service/**/*
