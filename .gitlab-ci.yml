@@ -171,9 +171,9 @@ deploy:aws:
     - echo "$AWS_PEM_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-    - groupadd docker
-    - usermod -aG docker gitlab-runner
-    - service docker restart
+    #- groupadd docker
+    #- usermod -aG docker gitlab-runner
+    #- service docker restart
     - chmod 666 /var/run/docker.sock
     - scp -o StrictHostKeyChecking=no $DOCKER_COMPOSE_FILE $AWS_USER_HOST:~/
     - ssh $AWS_USER_HOST "docker login -u $CI_USERNAME -p $CI_PASSWORD $CI_REGISTRY"
