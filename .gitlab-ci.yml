@@ -41,6 +41,10 @@ customer-authentication-service-:build:
   stage: build
   script:
     - cd customer-authentication-service/ && mvn clean compile
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - installed_deps/
   only:
     changes:
       - customer-authentication-service/**/*
@@ -67,6 +71,10 @@ customer-authentication-service:test:
   stage: test
   script:
     - cd customer-authentication-service/ && mvn test
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - installed_deps/
   only:
     changes:
       - customer-authentication-service/**/*
@@ -99,6 +107,10 @@ customer-authentication-service:package:
   stage: package
   script:
     - cd customer-authentication-service/ && mvn package -DskipTests=true
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - installed_deps/
   artifacts:
     paths:
       - customer-authentication-service/target/*.jar
@@ -111,7 +123,6 @@ customer-authentication-service:package:
 service-registry:publish:
   stage: publish
   image: docker:stable
-
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_PASSWORD $CI_REGISTRY
     - docker build -t $IMAGE_NAME:latest -f $IMAGE_NAME/Dockerfile .
@@ -126,7 +137,6 @@ service-registry:publish:
 api-gateway:publish:
   stage: publish
   image: docker:stable
-
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_PASSWORD $CI_REGISTRY
     - docker build -t $IMAGE_NAME:latest -f $IMAGE_NAME/Dockerfile .
@@ -141,12 +151,15 @@ api-gateway:publish:
 customer-authentication-service:publish:
   stage: publish
   image: docker:stable
-
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_PASSWORD $CI_REGISTRY
     - docker build -t $IMAGE_NAME:latest -f $IMAGE_NAME/Dockerfile .
     - docker image tag $IMAGE_NAME $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
     - docker push $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - installed_deps/
   variables:
     IMAGE_NAME: customer-authentication-service
   only:
