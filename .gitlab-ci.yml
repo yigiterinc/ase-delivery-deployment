@@ -171,6 +171,7 @@ deploy:aws:
     - echo "$AWS_PEM_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
+    - groupadd docker
     - usermod -aG docker gitlab-runner
     - service docker restart
     - chmod 666 /var/run/docker.sock
