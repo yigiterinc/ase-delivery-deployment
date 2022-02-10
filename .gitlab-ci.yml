@@ -166,7 +166,7 @@ deploy:aws:
   stage: deploy
   image: ubuntu:20.04
   script:
-    - 'which ssh-agent || ( apt-get install openssh-client -y )'
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
     - mkdir -p ~/.ssh && touch ~/.ssh/config
     - eval $(ssh-agent -s)
     - chmod 700 ~/.ssh
