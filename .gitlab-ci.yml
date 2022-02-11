@@ -71,7 +71,7 @@ frontend-service-build:
     changes:
       - $FRONT_END_DIR/**/*
   variables:
-    - FRONT_END_DIR: ase-delivery-frontend
+    FRONT_END_DIR: ase-delivery-frontend
 
 
 ### test ###
