@@ -243,6 +243,7 @@ frontend-service:publish:
   variables:
     IMAGE_DIR: ase-delivery-frontend
     IMAGE_NAME: frontend-service
+  needs: [frontend-service:build]
   dependencies:
       - frontend-service:build
   only:
