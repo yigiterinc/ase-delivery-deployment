@@ -4,7 +4,7 @@ import { authHeader } from "../helpers";
 import axiosRetry from "axios-retry";
 
 const client = axios.create({
-  baseURL: "http://api-gateway:8082/api",
+  baseURL: "http://localhost:10789/api",
   headers: {
     Authorization: authHeader(),
   },
