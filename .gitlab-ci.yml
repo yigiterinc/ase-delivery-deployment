@@ -23,15 +23,6 @@ service-registry:build:
     changes:
       - service-registry/**/*
 
-service-registry:test:
-  stage: test
-  script:
-    - cd service-registry/ && mvn test
-  only:
-    changes:
-      - service-registry/**/*
-
-
 api-gateway:build:
   stage: build
   script:
@@ -68,6 +59,7 @@ delivery-service:build:
 
 frontend-service:build:
   stage: build
+  image: node:latest
   script:
     - npm install
   artifacts:
@@ -80,7 +72,13 @@ frontend-service:build:
 
 
 ### test ###
-
+service-registry:test:
+  stage: test
+  script:
+    - cd service-registry/ && mvn test
+  only:
+    changes:
+      - service-registry/**/*
 
 api-gateway:test:
   stage: test
