@@ -61,14 +61,17 @@ frontend-service-build:
   stage: build
   image: node:latest
   script:
-    - cd ase-delivery-frontend && npm install
+    - cd $FRONT_END_DIR
+    - npm install
   artifacts:
     paths:
-      - frontend-service/build
-      - frontend-service/node_modules
+      - $FRONT_END_DIR/build
+      - $FRONT_END_DIR/node_modules
   only:
     changes:
-      - frontend-service/**/*
+      - $FRONT_END_DIR/**/*
+  variables:
+    - FRONT_END_DIR: ase-delivery-frontend
 
 
 ### test ###
