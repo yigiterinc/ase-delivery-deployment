@@ -22,7 +22,7 @@ service-registry:build:
   only:
     changes:
       - service-registry/**/*
-      
+
 api-gateway:build:
   stage: build
   script:
@@ -30,7 +30,7 @@ api-gateway:build:
   only:
     changes:
       - api-gateway/**/*
-      
+
 customer-authentication-service:build:
   stage: build
   script:
@@ -57,6 +57,18 @@ delivery-service:build:
     changes:
       - delivery-service/**/*
 
+frontend-service:build:
+  stage: build
+  script:
+    - npm install
+  artifacts:
+    paths:
+      - frontend-service/build
+      - frontend-service/node_modules
+  only:
+    changes:
+      - frontend-service/**/*
+
 
 ### test ###
 service-registry:test:
@@ -66,7 +78,7 @@ service-registry:test:
   only:
     changes:
       - service-registry/**/*
-      
+
 api-gateway:test:
   stage: test
   script:
@@ -74,7 +86,7 @@ api-gateway:test:
   only:
     changes:
       - api-gateway/**/*
-      
+
 customer-authentication-service:test:
   stage: test
   script:
@@ -111,7 +123,7 @@ service-registry:package:
   only:
     changes:
       - service-registry/**/*
-      
+
 api-gateway:package:
   stage: package
   script:
@@ -122,7 +134,7 @@ api-gateway:package:
   only:
     changes:
       - api-gateway/**/*
-      
+
 customer-authentication-service:package:
   stage: package
   script:
@@ -168,7 +180,7 @@ service-registry:publish:
   only:
     changes:
       - service-registry/*/**
-      
+
 api-gateway:publish:
   stage: publish
   image: docker:stable
@@ -182,7 +194,7 @@ api-gateway:publish:
   only:
     changes:
       - api-gateway/*/**
-      
+
 customer-authentication-service:publish:
   stage: publish
   image: docker:stable
@@ -218,6 +230,20 @@ delivery-service:publish:
   only:
     changes:
       - delivery-service/*/**
+
+frontend-service:publish:
+  stage: publish
+  image: docker:stable
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_PASSWORD $CI_REGISTRY
+    - docker build -t $IMAGE_NAME:latest -f $IMAGE_NAME/Dockerfile .
+    - docker image tag $IMAGE_NAME $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
+    - docker push $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
+  variables:
+    IMAGE_NAME: frontend-service
+  only:
+    changes:
+      - frontend-service/*/**
 
 
 deploy:aws:

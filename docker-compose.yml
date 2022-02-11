@@ -101,3 +101,18 @@ services:
       - ds_mongodb
       - service-registry
 
+
+  frontend-service:
+    container_name: frontend-service
+    hostname: frontend-service
+    image: gitlab.lrz.de:5005/ase-21-22/team-5/ase-delivery:frontend-service
+    restart: on-failure
+    links:
+      - service-registry
+    environment:
+      - SERVER_PORT=3000
+      - eureka.client.serviceUrl.defaultZone=http://service-registry:8761/eureka
+    ports:
+      - "3000:3000"
+    depends_on:
+      - service-registry
