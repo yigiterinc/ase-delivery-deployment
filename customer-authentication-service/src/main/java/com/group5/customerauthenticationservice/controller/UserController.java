@@ -28,6 +28,11 @@ public class UserController {
         return userService.create(createUserDto);
     }
 
+    @PutMapping
+    public ASEDeliveryUser update(@RequestBody ASEDeliveryUser user) {
+        return userService.update(user);
+    }
+
     @GetMapping("/token/{token}")
     public ASEDeliveryUser getUser(@PathVariable("token") String tokenString) {
         var token = JWT.decode(tokenString);

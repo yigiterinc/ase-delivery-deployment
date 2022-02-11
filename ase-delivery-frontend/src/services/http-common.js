@@ -4,7 +4,7 @@ import { authHeader } from "../helpers";
 import axiosRetry from "axios-retry";
 
 const client = axios.create({
-  baseURL: "http://ec2-18-197-77-236.eu-central-1.compute.amazonaws.com:10789/api",
+  baseURL: "http://localhost:10789/api",
   headers: {
     Authorization: authHeader(),
   },

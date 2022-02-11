@@ -21,14 +21,6 @@ export const createDelivery = createAsyncThunk(
   }
 );
 
-export const getDeliverybyId = createAsyncThunk(
-  "deliveries/getDeliveryById",
-  async ({ id }) => {
-    const res = await DeliveryDataService.getDeliveryById(id);
-    return res.data;
-  }
-);
-
 export const getDeliveries = createAsyncThunk(
   "/deliveries/getDeliveries",
   async () => {
@@ -173,10 +165,6 @@ const deliverySlice = createSlice({
           ),
         ],
       };
-    },
-
-    [getDeliverybyId.fulfilled]: (state, action) => {
-      return [...action.payload];
     },
     [updateDelivery.fulfilled]: (state, action) => {
       return {

@@ -29,6 +29,11 @@ public class DeliveryController {
         return ResponseEntity.ok().body(delivery);
     }
 
+    @PutMapping
+    public Delivery updateDelivery(@RequestBody Delivery delivery) {
+        return deliveryService.updateDelivery(delivery);
+    }
+
     @GetMapping("/customer/{customerId}/status/active")
     public ResponseEntity<List<Delivery>> getActiveDeliveriesOfCustomer(@PathVariable String customerId) {
 
@@ -62,7 +67,7 @@ public class DeliveryController {
         return deliveryService.changeStatusToCollected(boxId, delivererId);
     }
 
-    @PutMapping("/deliverer/{delivererId}/deposited/box/{boxId}")
+    /*@PutMapping("/deliverer/{delivererId}/deposited/box/{boxId}")
     public List<Delivery> onDeliveryDeposited(@PathVariable final String delivererId, @PathVariable final String boxId) {
         return deliveryService.changeStatusToDeposited(delivererId, boxId);
     }
@@ -70,6 +75,11 @@ public class DeliveryController {
     @PutMapping("/user/{userId}/delivered/box/{boxId}")
     public List<Delivery> onDeliveryDelivered(@PathVariable final String userId, @PathVariable final String boxId) {
         return deliveryService.changeStatusToDelivered(userId, boxId);
+    }*/
+
+    @PutMapping("/user/{userId}/update/box/{boxId}")
+    public List<Delivery> onDeliveryUpdated(@PathVariable final String userId, @PathVariable final String boxId) {
+        return deliveryService.changeStatusFromBox(userId, boxId);
     }
 }
 

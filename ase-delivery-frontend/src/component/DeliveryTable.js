@@ -12,7 +12,7 @@ import BaseModal from "./BaseModal";
 
 import CreateDeliveryForm from "./CreateDeliveryForm";
 
-import { Button, TextField } from "@material-ui/core";
+import { history } from "../history";
 
 const DeliveryTable = (props) => {
   const dispatch = useDispatch();
@@ -26,15 +26,13 @@ const DeliveryTable = (props) => {
   );
 
   const [showCreateModal, setShowCreateModal] = useState(false);
-
   const [updatePerformed, setUpdatePerformed] = useState(false);
-
   const [deliveryData, setDeliveryData] = useState();
-
-  const [tableShown, setTableShown] = useState(false);
+  const [showSpinner, setShowSpinner] = useState(true);
 
   useEffect(async () => {
     if (!deliveryData || updatePerformed) {
+      setShowSpinner(true);
       const user = JSON.parse(localStorage.getItem("user"));
       console.log(user);
       const id = user.id;
@@ -54,9 +52,9 @@ const DeliveryTable = (props) => {
       if (deliveryDataToSet) {
         setDeliveryData(JSON.parse(JSON.stringify(deliveryDataToSet)));
         console.log(deliveryData);
+        setShowSpinner(false);
       }
 
-      setTableShown(true);
       setUpdatePerformed(false);
     }
   }, [
@@ -85,7 +83,7 @@ const DeliveryTable = (props) => {
       editable: "never",
     },
     { field: "delivererId", title: "DelivererID" },
-    { field: "deliveryStatus", title: "DeliveryStatus" },
+    { field: "deliveryStatus", title: "DeliveryStatus", editable: "never" },
   ];
 
   const CreateDeliveryModal = (props) => {
@@ -110,16 +108,25 @@ const DeliveryTable = (props) => {
         }}
       >
         <MaterialTable
-          actions={[
-            {
-              icon: "add",
-              tooltip: "Create a Delivery",
-              position: "toolbar",
-              onClick: () => {
-                setShowCreateModal(true);
-              },
-            },
-          ]}
+          actions={
+            user.role === "DISPATCHER"
+              ? [
+                  {
+                    icon: "add",
+                    tooltip: "Create a Delivery",
+                    position: "toolbar",
+                    onClick: () => {
+                      setShowCreateModal(true);
+                    },
+                  },
+                ]
+              : []
+          }
+          onRowClick={
+            !props.activeDeliveries
+              ? null
+              : (event, rowData) => history.push(`/track/${rowData.id}`)
+          }
           editable={
             user.role !== "DISPATCHER"
               ? {}
@@ -161,6 +168,7 @@ const DeliveryTable = (props) => {
                     }),
                 }
           }
+          isLoading={showSpinner}
           style={{ width: "90vw" }}
           columns={columns}
           data={deliveryData}

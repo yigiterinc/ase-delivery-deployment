@@ -4,6 +4,7 @@ import { Router, Route, Switch } from "react-router-dom";
 
 import { history } from "./history";
 import { SecureRoute } from "./routes/SecureRoute";
+import TrackDelivery from "./view/TrackDelivery";
 
 function App() {
   return (
@@ -15,6 +16,12 @@ function App() {
           path="/dashboard"
           allowedRoles={["CUSTOMER", "DELIVERER", "DISPATCHER"]}
           component={Dashboard}
+        />
+        <SecureRoute
+          exact
+          path="/track/:deliveryId"
+          allowedRoles={["CUSTOMER"]}
+          component={TrackDelivery}
         />
       </Switch>
     </Router>

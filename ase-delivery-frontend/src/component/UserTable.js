@@ -5,6 +5,8 @@ import MaterialTable from "material-table";
 import { getAllUsers, deleteUser, updateUser } from "../store/slices/userSlice";
 import { updateBox } from "../store/slices/boxSlice";
 
+import { history } from "../history";
+
 import { Button } from "@material-ui/core";
 import BaseModal from "./BaseModal";
 import CreateUserForm from "./CreateUserForm";
@@ -16,6 +18,8 @@ const UserTable = (props) => {
   const [tableShown, setTableShown] = useState(false);
   const [userData, setUserData] = useState();
   const [updatePerformed, setUpdatePerformed] = useState();
+
+  const [showSpinner, setShowSpinner] = useState(true);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
 
@@ -32,11 +36,13 @@ const UserTable = (props) => {
 
   useEffect(async () => {
     if (updatePerformed || (!userData && !tableShown)) {
+      setShowSpinner(true);
       await dispatch(getAllUsers());
       console.log(users);
       setUserData(users);
       setTableShown(true);
       setUpdatePerformed(false);
+      setShowSpinner(false);
     }
   }, [users, tableShown, userData, updatePerformed]);
 
@@ -46,7 +52,6 @@ const UserTable = (props) => {
     { field: "id", title: "ID", editable: "never" },
     { field: "email", title: "Email" },
     { field: "role", title: "Role", editable: "never" },
-    { field: "rfid", title: "RFID" },
   ];
 
   return (
@@ -65,6 +70,7 @@ const UserTable = (props) => {
             columns={columns}
             data={users}
             title={"Users"}
+            isLoading={showSpinner}
             actions={[
               {
                 icon: "add",

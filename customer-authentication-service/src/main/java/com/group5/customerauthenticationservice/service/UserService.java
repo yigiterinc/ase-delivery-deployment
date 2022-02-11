@@ -48,6 +48,10 @@ public class UserService implements UserDetailsService {
         return Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole()));
     }
 
+    public ASEDeliveryUser update(ASEDeliveryUser aseDeliveryUser) {
+        return aseDeliveryUserRepository.save(aseDeliveryUser);
+    }
+
     public ASEDeliveryUser create(CreateUserDto createUserDto) {
         var user = new ASEDeliveryUser(createUserDto);
         user.setPassword(passwordEncoder.encode(createUserDto.getPassword()));

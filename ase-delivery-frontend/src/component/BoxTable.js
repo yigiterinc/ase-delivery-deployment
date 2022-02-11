@@ -26,8 +26,11 @@ const BoxTable = (props) => {
   const [updatePerformed, setUpdatePerformed] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
+  const [showSpinner, setShowSpinner] = useState(true);
+
   useEffect(async () => {
     if (!boxData || updatePerformed) {
+      setShowSpinner(true);
       const userId = JSON.parse(localStorage.getItem("user")).id;
       console.log(userId);
 
@@ -55,6 +58,7 @@ const BoxTable = (props) => {
       if (boxesDataToSet) {
         setBoxData(JSON.parse(JSON.stringify(boxesDataToSet)));
         console.log(boxesDataToSet);
+        setShowSpinner(false);
       }
       setUpdatePerformed(false);
     }
@@ -114,6 +118,7 @@ const BoxTable = (props) => {
             style={{ width: "90vw" }}
             columns={columns}
             data={boxData}
+            isLoading={showSpinner}
             title={props.assignedBoxes ? "Assigned Boxes" : "Boxes"}
             localization={{
               header: {

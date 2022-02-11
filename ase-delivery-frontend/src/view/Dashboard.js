@@ -5,9 +5,8 @@ import UserTable from "../component/UserTable";
 import BoxTable from "../component/BoxTable";
 import { CircularProgress } from "@material-ui/core";
 
-import { history } from "../history";
-
 import http from "../services/http-common";
+import Footer from "../component/Footer";
 
 const Dashboard = (props) => {
   const [user, setUser] = useState();
@@ -54,6 +53,7 @@ const Dashboard = (props) => {
     <div>
       <Header />
       {getRenderContent()}
+      <Footer></Footer>
     </div>
   );
 };
