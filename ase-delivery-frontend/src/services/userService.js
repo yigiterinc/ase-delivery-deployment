@@ -75,7 +75,7 @@ export const fetchUser = (jwt) => {
         reject("Token Not Found!");
       }
 
-      const res = await http.get(`${USER_BASE_URL}/token/${jwt}`);
+      const res = await http.get(`${USER_BASE_URL}/token/${jwt.token}`);
 
       resolve(res.data);
     } catch (error) {
