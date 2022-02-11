@@ -108,7 +108,7 @@ const deliverySlice = createSlice({
     [createDelivery.fulfilled]: (state, action) => {
       return {
         ...state,
-        allDeliveries: [...state["allDeliveries"], ...action.payload],
+        allDeliveries: state.allDeliveries.concat(action.payload),
       };
     },
     [getDeliveries.fulfilled]: (state, action) => {

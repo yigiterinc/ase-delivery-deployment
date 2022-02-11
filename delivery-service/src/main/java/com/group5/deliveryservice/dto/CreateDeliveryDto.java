@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 public class CreateDeliveryDto {
+
     private String boxId;
     private String customerId;
     private String delivererId;

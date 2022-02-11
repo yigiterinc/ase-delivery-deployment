@@ -12,11 +12,11 @@ import org.springframework.web.client.RestTemplate;
 @EnableEurekaClient
 public class DeliveryServiceApplication {
 
-    private final int TIMEOUT = 3000; // 3 seconds
-
     @Bean
     @LoadBalanced
-    public RestTemplate getRestTemplate() {
+    public static RestTemplate getRestTemplate() {
+        final int TIMEOUT = 3000; // 3 seconds
+
         HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory();
         clientHttpRequestFactory.setConnectTimeout(TIMEOUT);   // Set the timeout to 3 seconds
 
@@ -26,6 +26,5 @@ public class DeliveryServiceApplication {
     public static void main(String[] args) {
         SpringApplication.run(DeliveryServiceApplication.class, args);
     }
-
 
 }

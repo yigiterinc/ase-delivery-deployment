@@ -9,7 +9,7 @@ import java.util.function.Function;
 
 public class StatusChangeMailRequest implements MailRequest {
     private final DeliveryStatus deliveryStatus;
-    private List<String> trackingIds;
+    private final List<String> trackingIds;
 
     private final String BODY_PREFIX = "Dear Customer, \n";
     private final String BODY_SUFFIX = "\n\nWith kind regards\nASEDelivery";

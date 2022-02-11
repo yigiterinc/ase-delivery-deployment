@@ -2,11 +2,11 @@ package com.group5.deliveryservice.mail;
 
 public interface MailRequest {
 
-    public String getMailSubject();
+    String getMailSubject();
 
-    public String getMailBody();
+    String getMailBody();
 
-    public String getBodyPrefix();
+    String getBodyPrefix();
 
-    public String getBodySuffix();
+    String getBodySuffix();
 }

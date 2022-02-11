@@ -1,14 +1,12 @@
 package com.group5.customerauthenticationservice.service;
 
-import com.group5.customerauthenticationservice.IncorrectCredentialsException;
+import com.group5.customerauthenticationservice.exception.IncorrectCredentialsException;
 import com.group5.customerauthenticationservice.config.JwtCreator;
-import org.springframework.http.HttpStatus;
+import com.group5.customerauthenticationservice.model.Jwt;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,28 +27,23 @@ public class LoginService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public String login(String email, String password) {
-        // TODO: Refactor this method
-        UserDetails userDetails;
-        try {
-            userDetails = userService.loadUserByUsername(email);
-        } catch (UsernameNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found");
+    public Jwt login(String email, String password) {
+        UserDetails userDetails = userService.loadUserByUsername(email);
+
+        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
+            throw new IncorrectCredentialsException();
         }
 
-        if (passwordEncoder.matches(password, userDetails.getPassword())) {
-            Map<String, String> claims = new HashMap<>();
-            claims.put("username", email);
+        Map<String, String> claims = new HashMap<>();
+        claims.put("username", email);
 
-            String authorities = userDetails.getAuthorities().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .collect(Collectors.joining(","));
-            claims.put("authorities", authorities);
-            claims.put("userId", String.valueOf(1));
+        String authorities = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(","));
 
-            return jwtCreator.createJwtForClaims(email, claims);
-        }
+        claims.put("authorities", authorities);
+        claims.put("userId", String.valueOf(1));
 
-        throw new IncorrectCredentialsException();
+        return jwtCreator.createJwtForClaims(email, claims);
     }
 }

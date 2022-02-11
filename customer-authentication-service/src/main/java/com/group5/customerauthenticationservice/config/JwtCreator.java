@@ -3,6 +3,7 @@ package com.group5.customerauthenticationservice.config;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.group5.customerauthenticationservice.model.Jwt;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +25,7 @@ public class JwtCreator {
         this.publicKey = publicKey;
     }
 
-    public String createJwtForClaims(final String subject, final Map<String, String> claims) {
+    public Jwt createJwtForClaims(final String subject, final Map<String, String> claims) {
         final Calendar expiresAt = Calendar.getInstance();
         expiresAt.setTimeInMillis(Instant.now().toEpochMilli());
         expiresAt.add(Calendar.DATE, 1);
@@ -33,9 +34,9 @@ public class JwtCreator {
 
         claims.forEach(jwtBuilder::withClaim);
 
-        return jwtBuilder
+        return new Jwt(jwtBuilder
                 .withNotBefore(new Date())
                 .withExpiresAt(expiresAt.getTime())
-                .sign(Algorithm.RSA256(publicKey, privateKey));
+                .sign(Algorithm.RSA256(publicKey, privateKey)));
     }
 }

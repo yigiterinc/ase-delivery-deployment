@@ -1,6 +1,7 @@
 package com.group5.deliveryservice.service;
 
-import com.group5.deliveryservice.dto.*;
+import com.group5.deliveryservice.dto.CreateDeliveryDto;
+import com.group5.deliveryservice.dto.UserDto;
 import com.group5.deliveryservice.exception.*;
 import com.group5.deliveryservice.mail.MailService;
 import com.group5.deliveryservice.mail.StatusChangeMailRequest;
@@ -9,14 +10,10 @@ import com.group5.deliveryservice.model.Delivery;
 import com.group5.deliveryservice.model.DeliveryStatus;
 import com.group5.deliveryservice.model.Role;
 import com.group5.deliveryservice.repository.DeliveryRepository;
+import com.group5.deliveryservice.request.CustomerAuthenticationServiceRequests;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -27,19 +24,12 @@ public class DeliveryService {
     private final BoxService boxService;
     private final MailService mailService;
 
-    private final RestTemplate restTemplate;
-
-    private final String CUSTOMER_AUTHENTICATION_SERVICE_BASE_URL = "http://customer-authentication-service:8081/api/cas";
-    private final Function<String, String> getCustomerAuthenticationServiceFetchUserUrl = id -> CUSTOMER_AUTHENTICATION_SERVICE_BASE_URL + "/users/" + id;
-
     public DeliveryService(final DeliveryRepository deliveryRepository,
                            final BoxService boxService,
-                           final MailService mailService,
-                           final RestTemplate restTemplate) {
+                           final MailService mailService) {
         this.deliveryRepository = deliveryRepository;
         this.boxService = boxService;
         this.mailService = mailService;
-        this.restTemplate = restTemplate;
     }
 
     public List<Delivery> getAll() {
@@ -48,12 +38,12 @@ public class DeliveryService {
 
     public Delivery findDeliveryById(final String deliveryId) {
         return deliveryRepository.findById(deliveryId).orElseThrow(
-                () -> new RuntimeException("Delivery not found for id " + deliveryId));
+                () -> new NotFoundException("Delivery not found for id " + deliveryId));
     }
 
     public Delivery updateDelivery(Delivery delivery) {
-        var userDetails = getUserDetails(delivery.getCustomerId());
-        var delivererDetails = getUserDetails(delivery.getDelivererId());
+        var userDetails = CustomerAuthenticationServiceRequests.getUserDetails(delivery.getCustomerId());
+        var delivererDetails = CustomerAuthenticationServiceRequests.getUserDetails(delivery.getDelivererId());
         var newBox = this.boxService.findById(delivery.getTargetPickupBox().getId());
         delivery.setTargetPickupBox(newBox);
 
@@ -82,8 +72,8 @@ public class DeliveryService {
     }
 
     public Delivery createDelivery(final CreateDeliveryDto createDeliveryDto) {
-        var userDetails = getUserDetails(createDeliveryDto.getCustomerId());
-        var delivererDetails = getUserDetails(createDeliveryDto.getDelivererId());
+        var userDetails = CustomerAuthenticationServiceRequests.getUserDetails(createDeliveryDto.getCustomerId());
+        var delivererDetails = CustomerAuthenticationServiceRequests.getUserDetails(createDeliveryDto.getDelivererId());
 
         validateDeliveryDetails(createDeliveryDto, userDetails, delivererDetails);
 
@@ -93,7 +83,7 @@ public class DeliveryService {
 
         var userMailAddress = userDetails.getEmail();
         var statusChangeMailRequest = new StatusChangeMailRequest(DeliveryStatus.CREATED, delivery.getId());
-        new Thread(() -> mailService.sendEmailTo(userMailAddress, statusChangeMailRequest)).start();
+        sendMailInNewThread(userMailAddress, statusChangeMailRequest);
 
         return delivery;
     }
@@ -125,11 +115,6 @@ public class DeliveryService {
 
     private boolean userHasExpectedRole(UserDto userDto, String expectedRole) {
         return userDto != null && expectedRole.equals(userDto.getRole());
-    }
-
-    private UserDto getUserDetails(String userId) {
-        var url = getCustomerAuthenticationServiceFetchUserUrl.apply(userId);
-        return restTemplate.getForObject(url, UserDto.class);
     }
 
     Predicate<Delivery> isActiveDelivery = delivery -> !delivery.getDeliveryStatus().equals(DeliveryStatus.DELIVERED);
@@ -168,7 +153,7 @@ public class DeliveryService {
             throw new InvalidStatusChangeException();
         }
 
-        var deliverer = getUserDetails(delivererId);
+        var deliverer = CustomerAuthenticationServiceRequests.getUserDetails(delivererId);
         if (!userHasExpectedRole(deliverer, "DELIVERER")) {
             throw new InvalidIdException(String.format("The deliverer with id %s not found!", delivererId));
         }
@@ -196,7 +181,7 @@ public class DeliveryService {
                 throw new InvalidIdException("Supplied delivererId does not match the delivererId of this delivery");
             }
 
-            var deliverer = getUserDetails(delivererId);
+            var deliverer = CustomerAuthenticationServiceRequests.getUserDetails(delivererId);
             if (!userHasExpectedRole(deliverer, "DELIVERER")) {
                 throw new InvalidIdException(String.format("The deliverer with id %s not found!", delivererId));
             }
@@ -206,14 +191,18 @@ public class DeliveryService {
         }
 
         var userId = deliveries.get(0).getCustomerId();
-        var userDetails = getUserDetails(userId);
+        var userDetails = CustomerAuthenticationServiceRequests.getUserDetails(userId);
         var statusChangeMailRequest = new StatusChangeMailRequest(DeliveryStatus.DEPOSITED, deliveries.stream()
                 .map(Delivery::getId)
                 .collect(Collectors.toList()));
 
-        new Thread(() -> mailService.sendEmailTo(userDetails.getEmail(), statusChangeMailRequest)).start();
+        sendMailInNewThread(userDetails.getEmail(), statusChangeMailRequest);
 
         return deliveryRepository.saveAll(deliveries);
+    }
+
+    private void sendMailInNewThread(String userDetails, StatusChangeMailRequest statusChangeMailRequest) {
+        new Thread(() -> mailService.sendEmailTo(userDetails, statusChangeMailRequest)).start();
     }
 
     public boolean isBoxAvailableForNewDelivery(final String customerId, final String boxId) {
@@ -226,7 +215,9 @@ public class DeliveryService {
 
         var deliveriesInBox = deliveryRepository
                 .findAllByDeliveryStatusInAndTargetPickupBoxId(List.of(DeliveryStatus.CREATED, DeliveryStatus.DEPOSITED, DeliveryStatus.COLLECTED), box.getId());
+
         var boxIsEmptyOrHasSingleDelivery = deliveriesInBox.size() <= 1;
+
         var containsDeliveriesOfThisCustomerOnly = deliveriesInBox
                 .stream().allMatch(delivery -> delivery.getCustomerId().equals(customerId));
 
@@ -243,7 +234,7 @@ public class DeliveryService {
 
         assert allDeliveriesAreForTheSameUser(deliveriesInsideBox);
 
-        var userDetails = getUserDetails(userId);
+        var userDetails = CustomerAuthenticationServiceRequests.getUserDetails(userId);
         var deliveriesToUpdate = new ArrayList<Delivery>();
         for (Delivery delivery : deliveriesInsideBox) {
             if (!delivery.getCustomerId().equals(userId)) {
@@ -253,7 +244,7 @@ public class DeliveryService {
             delivery.setDeliveryStatus(DeliveryStatus.DELIVERED);
             deliveriesToUpdate.add(delivery);
             StatusChangeMailRequest statusChangeMailRequest = new StatusChangeMailRequest(DeliveryStatus.DELIVERED);
-            new Thread(() -> mailService.sendEmailTo(userDetails.getEmail(), statusChangeMailRequest)).start();
+            sendMailInNewThread(userDetails.getEmail(), statusChangeMailRequest);
         }
 
         return deliveryRepository.saveAll(deliveriesToUpdate);
@@ -264,7 +255,7 @@ public class DeliveryService {
     }
 
     public List<Delivery> changeStatusFromBox(final String userId, final String boxId) {
-        var userRole = getUserDetails(userId).getRole();
+        var userRole = CustomerAuthenticationServiceRequests.getUserDetails(userId).getRole();
         if (userRole.equals(Role.DELIVERER.toString()))
             return changeStatusToDeposited(userId, boxId);
         else if (userRole.equals(Role.CUSTOMER.toString()))
