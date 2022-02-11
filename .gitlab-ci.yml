@@ -82,7 +82,6 @@ frontend-service-build:
     - npm install
   artifacts:
     paths:
-      - $FRONT_END_DIR/build
       - $FRONT_END_DIR/node_modules
   only:
     changes:
