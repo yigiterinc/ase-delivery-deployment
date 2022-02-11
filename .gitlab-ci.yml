@@ -1,5 +1,12 @@
 image: maven:3.6.3-jdk-11
 
+cache:
+  paths:
+    - .m2/repository
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+
 before_script:
   - cd $CI_PROJECT_DIR
 
@@ -8,7 +15,7 @@ after_script:
 
 stages:
   - build
-  - test # no tests implemented
+#  - test # no tests implemented
   - package
   - publish
   - deploy
@@ -85,57 +92,57 @@ frontend-service-build:
 
 
 ### test ###
-service-registry-test:
-  stage: test
-  script:
-    - cd $SR_DIR/ && mvn test
-  needs: [ service-registry-build ]
-  dependencies:
-    - service-registry-build
-  only:
-    changes:
-      - $SR_DIR/**/*
-  variables:
-    SR_DIR: service-registry
-
-api-gateway-test:
-  stage: test
-  script:
-    - cd $AG_DIR/ && mvn test
-  needs: [ api-gateway-build ]
-  dependencies:
-    - api-gateway-build
-  only:
-    changes:
-      - $AG_DIR/**/*
-  variables:
-    AG_DIR: api-gateway
-
-customer-authentication-service-test:
-  stage: test
-  script:
-    - cd $CAS_DIR/ && mvn test
-  needs: [ customer-authentication-service-build ]
-  dependencies:
-    - customer-authentication-service-build
-  only:
-    changes:
-      - $CAS_DIR/**/*
-  variables:
-    CAS_DIR: customer-authentication-service
-
-delivery-service-test:
-  stage: test
-  script:
-    - cd $DS_DIR/ && mvn test
-  needs: [ delivery-service-build ]
-  dependencies:
-    - delivery-service-build
-  only:
-    changes:
-      - $DS_DIR/**/*
-  variables:
-    DS_DIR: delivery-service
+#service-registry-test:
+#  stage: test
+#  script:
+#    - cd $SR_DIR/ && mvn test
+#  needs: [ service-registry-build ]
+#  dependencies:
+#    - service-registry-build
+#  only:
+#    changes:
+#      - $SR_DIR/**/*
+#  variables:
+#    SR_DIR: service-registry
+#
+#api-gateway-test:
+#  stage: test
+#  script:
+#    - cd $AG_DIR/ && mvn test
+#  needs: [ api-gateway-build ]
+#  dependencies:
+#    - api-gateway-build
+#  only:
+#    changes:
+#      - $AG_DIR/**/*
+#  variables:
+#    AG_DIR: api-gateway
+#
+#customer-authentication-service-test:
+#  stage: test
+#  script:
+#    - cd $CAS_DIR/ && mvn test
+#  needs: [ customer-authentication-service-build ]
+#  dependencies:
+#    - customer-authentication-service-build
+#  only:
+#    changes:
+#      - $CAS_DIR/**/*
+#  variables:
+#    CAS_DIR: customer-authentication-service
+#
+#delivery-service-test:
+#  stage: test
+#  script:
+#    - cd $DS_DIR/ && mvn test
+#  needs: [ delivery-service-build ]
+#  dependencies:
+#    - delivery-service-build
+#  only:
+#    changes:
+#      - $DS_DIR/**/*
+#  variables:
+#    DS_DIR: delivery-service
 
 
 ### package ###
