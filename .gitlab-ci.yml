@@ -15,47 +15,57 @@ stages:
 
 
 ### build ###
-service-registry:build:
+service-registry-build:
   stage: build
   script:
-    - cd service-registry/ && mvn clean compile
-  only:
-    changes:
-      - service-registry/**/*
-
-api-gateway:build:
-  stage: build
-  script:
-    - cd api-gateway/ && mvn clean compile
-  only:
-    changes:
-      - api-gateway/**/*
-
-customer-authentication-service:build:
-  stage: build
-  script:
-    - mkdir -p installed_deps_cas
-    - cd customer-authentication-service/ && mvn clean compile
-  cache:
-    key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
+    - cd $SR_DIR/ && mvn clean compile
+  artifacts:
     paths:
-      - installed_deps_cas/
+      - $SR_DIR/target
   only:
     changes:
-      - customer-authentication-service/**/*
+      - $SR_DIR/**/*
+  variables:
+    SR_DIR: service-registry
 
-delivery-service:build:
+api-gateway-build:
   stage: build
   script:
-    - mkdir -p installed_deps_ds
-    - cd delivery-service/ && mvn clean compile
-  cache:
-    key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
+    - cd $AG_DIR/ && mvn clean compile
+  artifacts:
     paths:
-      - installed_deps_ds/
+      - $AG_DIR/target
   only:
     changes:
-      - delivery-service/**/*
+      - $AG_DIR/**/*
+  variables:
+    AG_DIR: api-gateway
+
+customer-authentication-service-build:
+  stage: build
+  script:
+    - cd $CAS_DIR/ && mvn clean compile
+  artifacts:
+    paths:
+      - $CAS_DIR/target
+  only:
+    changes:
+      - $CAS_DIR/**/*
+  variables:
+    CAS_DIR: customer-authentication-service
+
+delivery-service-build:
+  stage: build
+  script:
+    - cd $DS_DIR/ && mvn clean compile
+  artifacts:
+    paths:
+      - $DS_DIR/target
+  only:
+    changes:
+      - $DS_DIR/**/*
+  variables:
+    DS_DIR: delivery-service
 
 frontend-service-build:
   stage: build
@@ -75,103 +85,127 @@ frontend-service-build:
 
 
 ### test ###
-service-registry:test:
+service-registry-test:
   stage: test
   script:
-    - cd service-registry/ && mvn test
+    - cd $SR_DIR/ && mvn test
+  needs: [ service-registry-build ]
+  dependencies:
+    - service-registry-build
   only:
     changes:
-      - service-registry/**/*
+      - $SR_DIR/**/*
+  variables:
+    SR_DIR: service-registry
 
-api-gateway:test:
+api-gateway-test:
   stage: test
   script:
-    - cd api-gateway/ && mvn test
+    - cd $AG_DIR/ && mvn test
+  needs: [ api-gateway-build ]
+  dependencies:
+    - api-gateway-build
   only:
     changes:
-      - api-gateway/**/*
+      - $AG_DIR/**/*
+  variables:
+    AG_DIR: api-gateway
 
-customer-authentication-service:test:
+customer-authentication-service-test:
   stage: test
   script:
-    - cd customer-authentication-service/ && mvn test
-  cache:
-    key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
-    paths:
-      - installed_deps_cas/
+    - cd $CAS_DIR/ && mvn test
+  needs: [ customer-authentication-service-build ]
+  dependencies:
+    - customer-authentication-service-build
   only:
     changes:
-      - customer-authentication-service/**/*
+      - $CAS_DIR/**/*
+  variables:
+    CAS_DIR: customer-authentication-service
 
-delivery-service:test:
+delivery-service-test:
   stage: test
   script:
-    - cd delivery-service/ && mvn test
-  cache:
-    key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
-    paths:
-      - installed_deps_ds/
+    - cd $DS_DIR/ && mvn test
+  needs: [ delivery-service-build ]
+  dependencies:
+    - delivery-service-build
   only:
     changes:
-      - delivery-service/**/*
+      - $DS_DIR/**/*
+  variables:
+    DS_DIR: delivery-service
 
 
 ### package ###
-service-registry:package:
+service-registry-package:
   stage: package
   script:
-    - cd service-registry/ && mvn package -DskipTests=true
+    - cd $SR_DIR/ && mvn package -DskipTests=true
   artifacts:
     paths:
-      - service-registry/target/*.jar
+      - $SR_DIR/target/*.jar
+  needs: [ service-registry-build ]
+  dependencies:
+    - service-registry-build
   only:
     changes:
-      - service-registry/**/*
+      - $SR_DIR/**/*
+  variables:
+    SR_DIR: service-registry
 
-api-gateway:package:
+api-gateway-package:
   stage: package
   script:
-    - cd api-gateway/ && mvn package -DskipTests=true
+    - cd $AG_DIR/ && mvn package -DskipTests=true
   artifacts:
     paths:
-      - api-gateway/target/*.jar
+      - $AG_DIR/target/*.jar
+  needs: [ api-gateway-build ]
+  dependencies:
+    - api-gateway-build
   only:
     changes:
-      - api-gateway/**/*
+      - $AG_DIR/**/*
+  variables:
+    AG_DIR: api-gateway
 
-customer-authentication-service:package:
+customer-authentication-service-package:
   stage: package
   script:
-    - cd customer-authentication-service/ && mvn package -DskipTests=true
-  cache:
-    key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
-    paths:
-      - installed_deps_cas/
+    - cd $CAS_DIR/ && mvn package -DskipTests=true
   artifacts:
     paths:
-      - customer-authentication-service/target/*.jar
+      - $CAS_DIR/target/*.jar
+  needs: [ customer-authentication-service-build ]
+  dependencies:
+    - customer-authentication-service-build
   only:
     changes:
-      - customer-authentication-service/**/*
+      - $CAS_DIR/**/*
+  variables:
+    CAS_DIR: customer-authentication-service
 
-delivery-service:package:
+delivery-service-package:
   stage: package
   script:
-    - cd delivery-service/ && mvn package -DskipTests=true
-  cache:
-    key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
-    paths:
-      - installed_deps_ds/
+    - cd $DS_DIR/ && mvn package -DskipTests=true
   artifacts:
     paths:
-      - delivery-service/target/*.jar
+      - $DS_DIR/target/*.jar
+  needs: [ delivery-service-build ]
+  dependencies:
+    - delivery-service-build
   only:
     changes:
-      - delivery-service/**/*
+      - $DS_DIR/**/*
+  variables:
+    DS_DIR: delivery-service
 
 
 ### publish ###
-service-registry:publish:
+service-registry-publish:
   stage: publish
   image: docker:stable
   script:
@@ -179,13 +213,16 @@ service-registry:publish:
     - docker build -t $IMAGE_NAME:latest -f $IMAGE_NAME/Dockerfile .
     - docker image tag $IMAGE_NAME $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
     - docker push $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
+  needs: [ service-registry-package ]
+  dependencies:
+    - service-registry-package
   variables:
     IMAGE_NAME: service-registry
   only:
     changes:
       - service-registry/*/**
 
-api-gateway:publish:
+api-gateway-publish:
   stage: publish
   image: docker:stable
   script:
@@ -193,13 +230,16 @@ api-gateway:publish:
     - docker build -t $IMAGE_NAME:latest -f $IMAGE_NAME/Dockerfile .
     - docker image tag $IMAGE_NAME $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
     - docker push $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
+  needs: [ api-gateway-package ]
+  dependencies:
+    - api-gateway-package
   variables:
     IMAGE_NAME: api-gateway
   only:
     changes:
       - api-gateway/*/**
 
-customer-authentication-service:publish:
+customer-authentication-service-publish:
   stage: publish
   image: docker:stable
   script:
@@ -207,17 +247,16 @@ customer-authentication-service:publish:
     - docker build -t $IMAGE_NAME:latest -f $IMAGE_NAME/Dockerfile .
     - docker image tag $IMAGE_NAME $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
     - docker push $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
-  cache:
-    key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
-    paths:
-      - installed_deps_cas/
   variables:
     IMAGE_NAME: customer-authentication-service
+  needs: [ customer-authentication-service-package ]
+  dependencies:
+    - customer-authentication-service-package
   only:
     changes:
       - customer-authentication-service/*/**
 
-delivery-service:publish:
+delivery-service-publish:
   stage: publish
   image: docker:stable
   script:
@@ -225,12 +264,11 @@ delivery-service:publish:
     - docker build -t $IMAGE_NAME:latest -f $IMAGE_NAME/Dockerfile .
     - docker image tag $IMAGE_NAME $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
     - docker push $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
-  cache:
-    key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
-    paths:
-      - installed_deps_ds/
   variables:
     IMAGE_NAME: delivery-service
+  needs: [ delivery-service-package ]
+  dependencies:
+    - delivery-service-package
   only:
     changes:
       - delivery-service/*/**
@@ -254,7 +292,7 @@ frontend-service-publish:
       - frontend-service/*/**
 
 
-deploy:aws:
+deploy-aws:
   stage: deploy
   image: ubuntu:20.04
   script:
