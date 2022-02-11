@@ -57,17 +57,21 @@ delivery-service:build:
     changes:
       - delivery-service/**/*
 
-frontend-service:build:
+frontend-service-build:
   stage: build
+  image: node:latest
   script:
+    - cd $FRONT_END_DIR
     - npm install
   artifacts:
     paths:
-      - frontend-service/build
-      - frontend-service/node_modules
+      - $FRONT_END_DIR/build
+      - $FRONT_END_DIR/node_modules
   only:
     changes:
-      - frontend-service/**/*
+      - $FRONT_END_DIR/**/*
+  variables:
+    FRONT_END_DIR: ase-delivery-frontend
 
 
 ### test ###
@@ -231,16 +235,20 @@ delivery-service:publish:
     changes:
       - delivery-service/*/**
 
-frontend-service:publish:
+frontend-service-publish:
   stage: publish
   image: docker:stable
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_PASSWORD $CI_REGISTRY
-    - docker build -t $IMAGE_NAME:latest -f $IMAGE_NAME/Dockerfile .
+    - docker build -t $IMAGE_NAME:latest -f $IMAGE_DIR/Dockerfile .
     - docker image tag $IMAGE_NAME $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
     - docker push $CI_REGISTRY/$CI_PROJECT_LOCATION:$IMAGE_NAME
   variables:
+    IMAGE_DIR: ase-delivery-frontend
     IMAGE_NAME: frontend-service
+  needs: [frontend-service-build]
+  dependencies:
+      - frontend-service-build
   only:
     changes:
       - frontend-service/*/**
