@@ -21,10 +21,10 @@ services:
     links:
       - service-registry
     environment:
-      - SERVER_PORT=8082
+      - SERVER_PORT=10789
       - eureka.client.serviceUrl.defaultZone=http://service-registry:8761/eureka
     ports:
-      - "8082:8082"
+      - "10789:10789"
     depends_on:
       - service-registry
 
@@ -107,12 +107,7 @@ services:
     hostname: frontend-service
     image: gitlab.lrz.de:5005/ase-21-22/team-5/ase-delivery:frontend-service
     restart: on-failure
-    links:
-      - service-registry
     environment:
       - SERVER_PORT=3000
-      - eureka.client.serviceUrl.defaultZone=http://service-registry:8761/eureka
     ports:
       - "3000:3000"
-    depends_on:
-      - service-registry
