@@ -57,7 +57,7 @@ delivery-service:build:
     changes:
       - delivery-service/**/*
 
-frontend-service:build:
+frontend-service-build:
   stage: build
   image: node:latest
   script:
@@ -232,7 +232,7 @@ delivery-service:publish:
     changes:
       - delivery-service/*/**
 
-frontend-service:publish:
+frontend-service-publish:
   stage: publish
   image: docker:stable
   script:
@@ -243,9 +243,9 @@ frontend-service:publish:
   variables:
     IMAGE_DIR: ase-delivery-frontend
     IMAGE_NAME: frontend-service
-  needs: [frontend-service:build]
+  needs: [frontend-service-build]
   dependencies:
-      - frontend-service:build
+      - frontend-service-build
   only:
     changes:
       - frontend-service/*/**
