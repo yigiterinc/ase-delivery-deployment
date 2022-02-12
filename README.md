@@ -7,6 +7,9 @@ This is the final ASEDelivery project containing backend, frontend, and hardware
 
 The project contains an established CI/CD pipeline. Therefore, the deployment to AWS is possible within a few steps.
 
+Our final working RELEASE can be found here:
+`https://gitlab.lrz.de/ase-21-22/team-5/ase-delivery/-/tags/RELEASE`
+
 1. Configure the CI/CD variables `AWS_USER_HOST` to indicate your AWS host and AWS_PEM_KEY which contains your SSH private key (content of .pem file) in ASE 21-22/Team 5/Settings/CI/CD. The other variable should stay the same.
 
 2. Run the pipeline without any input variables. The containers are built, packaged, pushed to the container registry, and finally deployed to a custom AWS host. We excluded the test stage since we have not implemented any tests and wanted to speed up the pipeline but it is available if you comment the corresponding code section out.
